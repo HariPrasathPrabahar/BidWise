@@ -44,10 +44,11 @@ def load_data():
         st.error(f"Error loading ONET Map: {e}")
         roles_map = {}
 
-    # Load Electives
+    # Load Electives (FIXED FOR EXCEL)
     try:
-        # Tries to load standard CSV
-        df_electives = pd.read_csv('Elective List.csv')
+        # Reads .xlsx file now
+        df_electives = pd.read_excel('Elective List.xlsx')
+        
         # Filter for Electives only if the column exists
         if 'Category' in df_electives.columns:
             df_biddable = df_electives[df_electives['Category'] == 'Elective'].copy()
@@ -90,20 +91,15 @@ def extract_text_from_pdf(file):
 
 def extract_skills_robust(text, network_skills):
     if not text: return []
-    # Normalize
     text = re.sub(r'\s+', ' ', text).lower()
     found = set()
     
     # 1. Exact Phrase Match
     for skill in network_skills:
-        # regex boundary match
         pattern = r'\b' + re.escape(skill.lower()).replace(r'\ ', r'\s+') + r'\b'
         if re.search(pattern, text):
             found.add(skill)
             
-    # 2. Fuzzy Match for specialized skills (Pass 2)
-    # We keep it simple for speed in the app
-    
     return list(found)
 
 def get_recommendations(needed_skills):
@@ -140,7 +136,6 @@ def get_recommendations(needed_skills):
                 "Area": course['Department/Area']
             })
     
-    # Remove duplicates
     if recs:
         return pd.DataFrame(recs).drop_duplicates(subset=['Recommended Elective'])
     return pd.DataFrame()
@@ -150,7 +145,7 @@ def get_recommendations(needed_skills):
 # Header
 col1, col2 = st.columns([1, 5])
 with col1:
-    st.write("🎓") # You can replace with st.image if you have a URL
+    st.write("🎓")
 with col2:
     st.markdown('<h1 class="title-text">BidWise</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle-text">IIM Amritsar Elective Bidding Intelligence System</p>', unsafe_allow_html=True)
@@ -164,7 +159,6 @@ tab1, tab2 = st.tabs(["🚀 Role Explorer", "📄 Resume Gap Analyzer"])
 with tab1:
     st.header("Find Electives for a Target Role")
     
-    # Dropdown for roles
     role_options = sorted([r.replace('_', ' ').title() for r in onet_target_roles.keys()])
     selected_role = st.selectbox("Select a Career Goal:", [""] + role_options)
     
@@ -223,4 +217,4 @@ with tab2:
 
 # Footer
 st.markdown("---")
-st.markdown("built with ❤️ by Team IronFist")
+st.markdown("built by P HariPrasath")
