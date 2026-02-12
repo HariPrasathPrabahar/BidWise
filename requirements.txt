@@ -6,3 +6,4 @@ rapidfuzz
 pypdf2
 numpy
 altair
+openpyxl
