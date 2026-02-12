@@ -1,0 +1,8 @@
+streamlit
+pandas
+networkx
+scikit-learn
+rapidfuzz
+pypdf2
+numpy
+altair
