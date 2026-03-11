@@ -91,7 +91,7 @@ def load_data():
         if 'Category' in df.columns:
             df = df[df['Category'] == 'Elective'].copy()
     except:
-        df = pd.DataFrame(columns=['Course Name', 'Department/Area', 'Brief Description for NLP Mapping'])
+        df = pd.DataFrame(columns=['Elective Name', 'Department/Area', 'Brief Description'])
         
     return G, roles_map, df
 
@@ -101,8 +101,8 @@ G_final, onet_target_roles, df_electives = load_data()
 @st.cache_resource
 def setup_nlp_engine(df):
     if df.empty: return None, None
-    df['Weighted_Text'] = ((df['Course Name'].fillna('') + " ") * 3 + 
-                           df['Brief Description for NLP Mapping'].fillna('')).str.lower()
+    df['Weighted_Text'] = ((df['Elective Name'].fillna('') + " ") * 3 + 
+                           df['Brief Description'].fillna('')).str.lower()
     vectorizer = TfidfVectorizer(stop_words='english', ngram_range=(1, 3))
     tfidf_matrix = vectorizer.fit_transform(df['Weighted_Text'])
     return vectorizer, tfidf_matrix
@@ -174,9 +174,9 @@ def get_recommendations_expanded(needed_skills, top_n=15):
                 course = df_electives.iloc[idx]
                 recs.append({
                     "Skill to Bridge": skill.title(),
-                    "Elective": course['Course Name'],
+                    "Elective": course['Elective Name'],
                     "Department": course['Department/Area'],
-                    "Description": course.get('Brief Description for NLP Mapping', 'No description available')[:100] + "...",
+                    "Description": course.get('Brief Description', 'No description available')[:100] + "...",
                     "Relevance": score
                 })
 
@@ -264,8 +264,7 @@ elif selected_tab == "🌉 Resume Gap Analyzer":
             
             text = extract_pdf(uploaded_file)
             
-            # Simple Extraction for Demo (You can paste your 'extract_skills_robust' logic here)
-            # Using basic regex matching against G_final nodes
+            # Simple Extraction for Demo
             current_skills = []
             clean_text = re.sub(r'\s+', ' ', text).lower()
             for node in G_final.nodes():
@@ -286,10 +285,13 @@ elif selected_tab == "🌉 Resume Gap Analyzer":
             st.markdown("### 🎒 Your Personalized Bidding List")
             if gaps:
                 df_gap_recs = get_recommendations_expanded(gaps, top_n=12)
-                st.dataframe(
-                    df_gap_recs[['Elective', 'Department', 'Description', 'Skill to Bridge']],
-                    hide_index=True,
-                    use_container_width=True
-                )
+                if not df_gap_recs.empty:
+                    st.dataframe(
+                        df_gap_recs[['Elective', 'Department', 'Description', 'Skill to Bridge']],
+                        hide_index=True,
+                        use_container_width=True
+                    )
+                else:
+                    st.warning("Could not map specific electives. Please check Core requirements.")
             else:
                 st.success("You are fully matched! Consider advanced electives for specialization.")
